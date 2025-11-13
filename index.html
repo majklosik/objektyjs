@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Výpočet čistého příjmu po zdanění</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container mt-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="text-center text-primary mb-4">Výpočet čistého příjmu po zdanění</h2>
+
+        <form id="taxForm">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="income" class="form-label">Hrubý příjem (v Kč)</label>
+              <input type="number" class="form-control" id="income" required min="0">
+            </div>
+            <div class="col-md-6">
+              <label for="country" class="form-label">Vyberte stát</label>
+              <select id="country" class="form-select">
+                <option value="cz">Česká republika</option>
+                <option value="sk">Slovensko</option>
+                <option value="de">Německo</option>
+                <option value="us">USA</option>
+                <option value="uk">Velká Británie</option>
+                <option value="fr">Francie</option>
+                <option value="ca">Kanada</option>
+                <option value="se">Švédsko</option>
+                <option value="au">Austrálie</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Vypočítat</button>
+        </form>
+
+        <div id="result" class="mt-4" style="display:none;">
+          <h4 class="text-success">Výsledek:</h4>
+          <p id="summary"></p>
+
+          <h5 class="mt-3">Srovnání s ostatními státy:</h5>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Stát</th>
+                <th>Daňová sazba (%)</th>
+                <th>Čistý příjem (Kč)</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const countries = [
+      { code: "cz", name: "Česká republika", taxRate: 15 },
+      { code: "sk", name: "Slovensko", taxRate: 19 },
+      { code: "de", name: "Německo", taxRate: 25 },
+      { code: "us", name: "USA", taxRate: 22 },
+      { code: "uk", name: "Velká Británie", taxRate: 20 },
+      { code: "fr", name: "Francie", taxRate: 30 },
+      { code: "ca", name: "Kanada", taxRate: 23 },
+      { code: "se", name: "Švédsko", taxRate: 32 },
+      { code: "au", name: "Austrálie", taxRate: 28 }
+    ];
+
+    function calculateNetIncome(gross, rate) {
+      return gross * (1 - rate / 100);
+    }
+
+    document.getElementById('taxForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const income = parseFloat(document.getElementById('income').value);
+      const countryCode = document.getElementById('country').value;
+
+      const selectedCountry = countries.find(c => c.code === countryCode);
+      const netIncome = calculateNetIncome(income, selectedCountry.taxRate);
+
+      document.getElementById('summary').innerHTML = `
+        Ve státě <strong>${selectedCountry.name}</strong> při hrubém příjmu 
+        <strong>${income.toLocaleString()} Kč</strong> a daňové sazbě 
+        <strong>${selectedCountry.taxRate}%</strong> získáte čistý příjem 
+        <strong>${netIncome.toLocaleString()} Kč</strong>.
+      `;
+
+      const tableBody = document.getElementById('comparisonTable');
+      tableBody.innerHTML = "";
+      countries.forEach(c => {
+        const net = calculateNetIncome(income, c.taxRate);
+        const row = `
+          <tr${c.code === countryCode ? ' class="table-info"' : ''}>
+            <td>${c.name}</td>
+            <td>${c.taxRate}</td>
+            <td>${net.toLocaleString()}</td>
+          </tr>`;
+        tableBody.innerHTML += row;
+      });
+
+      document.getElementById('result').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
